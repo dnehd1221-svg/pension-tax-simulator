@@ -451,3 +451,44 @@ document.getElementById('form-pension').addEventListener('submit', (e) => {
     totalGross: sim.totalGross, totalTax: sim.totalTax, totalNet: sim.totalNet, effRate,
   });
 });
+
+// ===================== 탭 4: 관련 영상 찾기 =====================
+
+document.getElementById('form-videos').addEventListener('submit', (e) => {
+  e.preventDefault();
+  hideError('error-videos');
+
+  const keyword = document.getElementById('videoKeyword').value.trim();
+  if (!keyword) {
+    showError('error-videos', '키워드를 입력해 주세요.');
+    return;
+  }
+
+  const card = document.getElementById('result-videos');
+  const defaultEmptyState = card.querySelector('.empty-state');
+  const content = card.querySelector('.result-content');
+  const notFound = document.getElementById('video-not-found');
+  defaultEmptyState.hidden = true;
+
+  const video = findBestPensionVideo(keyword);
+
+  if (video) {
+    notFound.hidden = true;
+    document.getElementById('video-embed').src = `https://www.youtube.com/embed/${video.id}`;
+    document.getElementById('video-title').textContent = video.title;
+    document.getElementById('video-link').href = `https://www.youtube.com/watch?v=${video.id}`;
+    content.hidden = false;
+    content.classList.remove('is-revealed');
+    void content.offsetWidth;
+    content.classList.add('is-revealed');
+  } else {
+    content.hidden = true;
+    document.getElementById('video-not-found-text').textContent =
+      `"${keyword}"와 관련된 영상을 찾지 못했어요. 다른 키워드로 시도해보거나 아래에서 직접 검색해보세요.`;
+    document.getElementById('video-search-link').href =
+      `https://www.youtube.com/@samsungsecurities/search?query=${encodeURIComponent(keyword)}`;
+    notFound.hidden = false;
+  }
+
+  logConsultation('videos', { keyword }, { matchedVideoId: video ? video.id : null });
+});
