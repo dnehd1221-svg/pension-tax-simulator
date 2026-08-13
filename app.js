@@ -284,6 +284,7 @@ document.getElementById('form-credit').addEventListener('submit', (e) => {
   `;
 
   revealResult('result-credit');
+  logConsultation('credit', { incomeType, incomeAmount, pensionSavings, irpAmount }, result);
 });
 
 // ===================== 탭 2: 중도인출 세금 =====================
@@ -361,6 +362,7 @@ document.getElementById('form-withdraw').addEventListener('submit', (e) => {
   `;
 
   revealResult('result-withdraw');
+  logConsultation('withdraw', { reason, age, totalContribution, creditClaimedAmount, currentValuation }, result);
 });
 
 // ===================== 탭 3: 연금수령 시뮬레이션 =====================
@@ -445,4 +447,7 @@ document.getElementById('form-pension').addEventListener('submit', (e) => {
   `;
 
   revealResult('result-pension');
+  logConsultation('pension', { startAge, years, totalAsset, isLifetime }, {
+    totalGross: sim.totalGross, totalTax: sim.totalTax, totalNet: sim.totalNet, effRate,
+  });
 });
