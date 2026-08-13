@@ -10,6 +10,29 @@ function formatPercent(rate) {
   return `${(rate * 100).toFixed(1)}%`;
 }
 
+// 숫자 스탯을 0에서 목표값까지 부드럽게 카운트업
+function animateValue(el, to, formatFn, duration = 600) {
+  const start = performance.now();
+  function tick(now) {
+    const t = Math.min((now - start) / duration, 1);
+    const eased = 1 - Math.pow(1 - t, 3);
+    el.textContent = formatFn(to * eased);
+    if (t < 1) requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+}
+
+// empty-state를 감추고 결과 영역을 페이드인으로 드러낸다
+function revealResult(cardId) {
+  const card = document.getElementById(cardId);
+  card.querySelector('.empty-state').hidden = true;
+  const content = card.querySelector('.result-content');
+  content.hidden = false;
+  content.classList.remove('is-revealed');
+  void content.offsetWidth;
+  content.classList.add('is-revealed');
+}
+
 function showError(id, message) {
   const el = document.getElementById(id);
   el.textContent = message;
@@ -163,6 +186,8 @@ function renderBarChart(container, items, opts = {}) {
     // hit target: full slot, bigger than the bar itself
     const hit = svgEl('rect', { x: slotX, y: 0, width: slotWidth, height: innerH, fill: 'transparent' });
     const bar = svgEl('path', { d: roundedTopBarPath(barX, barY, barWidth, barHeight), class: 'chart-bar' });
+    bar.style.transform = 'scaleY(0)';
+    bar.style.transitionDelay = `${Math.min(i * 12, 240)}ms`;
 
     const onEnter = (evt) => {
       bar.classList.add('is-active');
@@ -202,6 +227,10 @@ function renderBarChart(container, items, opts = {}) {
 
   svg.appendChild(g);
   container.appendChild(svg);
+
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    g.querySelectorAll('.chart-bar').forEach((bar) => { bar.style.transform = 'scaleY(1)'; });
+  }));
 }
 
 function formatCompactWon(amount) {
@@ -229,15 +258,20 @@ document.getElementById('form-credit').addEventListener('submit', (e) => {
 
   const result = calcTaxCredit({ incomeType, incomeAmount, pensionSavings, irp: irpAmount });
 
-  document.getElementById('credit-rate').textContent = formatPercent(result.rate);
-  document.getElementById('credit-eligible').textContent = formatWon(result.eligibleAmount);
-  document.getElementById('credit-amount').textContent = formatWon(result.credit);
+  animateValue(document.getElementById('credit-rate'), result.rate, formatPercent);
+  animateValue(document.getElementById('credit-eligible'), result.eligibleAmount, formatWon);
+  animateValue(document.getElementById('credit-amount'), result.credit, formatWon);
 
+  const limitBadge = document.getElementById('credit-limit-badge');
   const overLimitEl = document.getElementById('credit-overlimit');
   if (result.overLimitAmount > 0) {
+    limitBadge.textContent = '한도 초과분 있음';
+    limitBadge.className = 'badge-pill badge-warning';
     overLimitEl.hidden = false;
     overLimitEl.textContent = `납입액 중 ${formatWon(result.overLimitAmount)}은 세액공제 한도를 초과하여 공제 대상에서 제외됩니다.`;
   } else {
+    limitBadge.textContent = '한도 내 전액 공제 대상';
+    limitBadge.className = 'badge-pill badge-good';
     overLimitEl.hidden = true;
   }
 
@@ -249,7 +283,7 @@ document.getElementById('form-credit').addEventListener('submit', (e) => {
     · 예상 절세액 = 대상금액 × 공제율 = ${formatWon(result.eligibleAmount)} × ${formatPercent(result.rate)} = ${formatWon(result.credit)}
   `;
 
-  document.getElementById('result-credit').hidden = false;
+  revealResult('result-credit');
 });
 
 // ===================== 탭 2: 중도인출 세금 =====================
@@ -283,10 +317,19 @@ document.getElementById('form-withdraw').addEventListener('submit', (e) => {
 
   const result = calcWithdrawalTax({ reason, age, taxableAmount, taxFreeAmount });
 
-  document.getElementById('withdraw-total').textContent = formatWon(result.totalWithdrawal);
+  const reasonBadge = document.getElementById('withdraw-reason-badge');
+  if (reason === 'unavoidable') {
+    reasonBadge.textContent = `연금소득세 저율 적용 (${formatPercent(result.rate)})`;
+    reasonBadge.className = 'badge-pill badge-teal';
+  } else {
+    reasonBadge.textContent = `기타소득세 적용 (${formatPercent(result.rate)})`;
+    reasonBadge.className = 'badge-pill badge-warning';
+  }
+
   document.getElementById('withdraw-tax-label').textContent = `${result.taxLabel} (${formatPercent(result.rate)})`;
-  document.getElementById('withdraw-tax').textContent = formatWon(result.tax);
-  document.getElementById('withdraw-net').textContent = formatWon(result.netAmount);
+  animateValue(document.getElementById('withdraw-total'), result.totalWithdrawal, formatWon);
+  animateValue(document.getElementById('withdraw-tax'), result.tax, formatWon);
+  animateValue(document.getElementById('withdraw-net'), result.netAmount, formatWon);
 
   document.getElementById('withdraw-basis').innerHTML = `
     <b>계산 근거</b><br>
@@ -297,7 +340,7 @@ document.getElementById('form-withdraw').addEventListener('submit', (e) => {
     · 실수령액 = 총 인출금액 − 세금 = ${formatWon(result.totalWithdrawal)} − ${formatWon(result.tax)} = ${formatWon(result.netAmount)}
   `;
 
-  document.getElementById('result-withdraw').hidden = false;
+  revealResult('result-withdraw');
 });
 
 // ===================== 탭 3: 연금수령 시뮬레이션 =====================
@@ -327,10 +370,11 @@ document.getElementById('form-pension').addEventListener('submit', (e) => {
   const sim = simulatePensionPayout({ startAge, years, totalAsset });
   const effRate = sim.totalGross > 0 ? sim.totalTax / sim.totalGross : 0;
 
-  document.getElementById('pension-gross').textContent = formatWon(sim.totalGross);
-  document.getElementById('pension-tax').textContent = formatWon(sim.totalTax);
-  document.getElementById('pension-net').textContent = formatWon(sim.totalNet);
-  document.getElementById('pension-effrate').textContent = formatPercent(effRate);
+  document.getElementById('pension-lifetime-badge').hidden = !isLifetime;
+  animateValue(document.getElementById('pension-gross'), sim.totalGross, formatWon);
+  animateValue(document.getElementById('pension-tax'), sim.totalTax, formatWon);
+  animateValue(document.getElementById('pension-net'), sim.totalNet, formatWon);
+  animateValue(document.getElementById('pension-effrate'), effRate, formatPercent);
 
   // 연차별 차트
   const yearlyItems = sim.rows.map((r) => ({ x: `${r.year}년차`, value: r.net }));
@@ -370,5 +414,5 @@ document.getElementById('form-pension').addEventListener('submit', (e) => {
     · 실효세율 = 총세금 ÷ 총세전수령액 = ${formatPercent(effRate)}${isLifetime ? '<br>· 종신형 연금은 연금수령한도 초과분도 저율 연금소득세가 유지되나, 본 시뮬레이터는 한도 초과 여부는 계산하지 않습니다.' : ''}
   `;
 
-  document.getElementById('result-pension').hidden = false;
+  revealResult('result-pension');
 });

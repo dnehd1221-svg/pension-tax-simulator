@@ -17,6 +17,14 @@
   --series-1:       #0075de; /* 차트 단일 시리즈도 브랜드 블루로 통일 */
   --good:           #1aae39; /* colors.accent-green */
   --warning:        #dd5b00; /* colors.accent-orange */
+  /* 장식용 스티커 팔레트 — 구조/의미 전달에는 쓰지 않고 empty-state, 뱃지 등 장식에만 사용 */
+  --sticker-purple: #d6b6f6;
+  --sticker-purple-deep: #391c57;
+  --sticker-pink:   #ff64c8;
+  --sticker-orange: #dd5b00;
+  --sticker-teal:   #2a9d99;
+  --sticker-green:  #1aae39;
+  --sticker-sky:    #62aef0;
   --shadow-1: 0 0.175px 1.041px rgba(0,0,0,0.01),
               0 0.8px 2.925px rgba(0,0,0,0.02),
               0 2.025px 7.847px rgba(0,0,0,0.027),
@@ -47,6 +55,13 @@
     --series-1:       #3f96ea;
     --good:           #3fc95d;
     --warning:        #e8823f;
+    --sticker-purple: #b98cf0;
+    --sticker-purple-deep: #d6b6f6;
+    --sticker-pink:   #ff8ad4;
+    --sticker-orange: #e8823f;
+    --sticker-teal:   #3bbfba;
+    --sticker-green:  #3fc95d;
+    --sticker-sky:    #7cbdf5;
   }
 }
 
@@ -132,6 +147,82 @@ main { padding: 24px 32px 48px; }
   font-weight: 600;
   letter-spacing: -0.125px;
 }
+
+/* ---- Empty state (계산 전 안내) ---- */
+.empty-state[hidden] { display: none; }
+.empty-state {
+  min-height: 320px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 18px;
+  padding: 32px 16px;
+}
+.empty-state p {
+  margin: 0;
+  font-size: 15px;
+  color: var(--text-faint);
+  line-height: 1.6;
+}
+.sticker-cluster {
+  display: flex;
+  align-items: center;
+}
+.sticker-dot {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-full);
+  border: 3px solid var(--card-surface);
+  box-shadow: var(--shadow-1);
+}
+.sticker-cluster .sticker-dot:not(:first-child) { margin-left: -12px; }
+.sticker-purple { background: var(--sticker-purple); }
+.sticker-pink   { background: var(--sticker-pink); }
+.sticker-orange { background: var(--sticker-orange); }
+.sticker-teal   { background: var(--sticker-teal); }
+.sticker-green  { background: var(--sticker-green); }
+.sticker-sky    { background: var(--sticker-sky); }
+
+/* ---- Badge pill (장식/보조 신호용, 구조색과 분리) ---- */
+.badge-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 14px;
+  padding: 5px 12px;
+  border-radius: var(--radius-full);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.125px;
+  background: color-mix(in srgb, var(--text-muted) 10%, var(--canvas));
+  color: var(--text-secondary);
+}
+.badge-pill:empty { display: none; }
+.badge-pill.badge-good {
+  background: color-mix(in srgb, var(--sticker-green) 16%, var(--canvas));
+  color: color-mix(in srgb, var(--sticker-green) 70%, var(--text-primary));
+}
+.badge-pill.badge-warning {
+  background: color-mix(in srgb, var(--sticker-orange) 16%, var(--canvas));
+  color: color-mix(in srgb, var(--sticker-orange) 70%, var(--text-primary));
+}
+.badge-pill.badge-teal {
+  background: color-mix(in srgb, var(--sticker-teal) 16%, var(--canvas));
+  color: color-mix(in srgb, var(--sticker-teal) 60%, var(--text-primary));
+}
+.badge-pill.sticker-purple-badge {
+  background: color-mix(in srgb, var(--sticker-purple) 30%, var(--canvas));
+  color: var(--sticker-purple-deep);
+}
+
+/* ---- 결과 등장 애니메이션 ---- */
+@keyframes reveal-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.result-content.is-revealed { animation: reveal-up 0.45s ease; }
 
 .field { margin-bottom: 16px; }
 .field label { display: block; font-size: 15px; font-weight: 600; margin-bottom: 6px; }
@@ -234,6 +325,9 @@ main { padding: 24px 32px 48px; }
 .chart-bar {
   fill: var(--series-1);
   cursor: pointer;
+  transform-box: fill-box;
+  transform-origin: bottom;
+  transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1), fill 0.15s ease;
 }
 .chart-bar:hover, .chart-bar.is-active { fill: var(--primary-active); }
 .chart-axis-label { fill: var(--text-faint); font-size: 11px; }

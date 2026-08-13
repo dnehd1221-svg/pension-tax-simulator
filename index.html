@@ -54,24 +54,35 @@
           <p class="field-error" id="error-credit" hidden></p>
         </form>
 
-        <div class="result-card" id="result-credit" hidden>
-          <h2>계산 결과</h2>
-          <div class="stat-row">
-            <div class="stat-tile">
-              <div class="stat-label">적용 공제율</div>
-              <div class="stat-value" id="credit-rate">-</div>
+        <div class="result-card" id="result-credit">
+          <div class="empty-state">
+            <div class="sticker-cluster">
+              <span class="sticker-dot sticker-purple"></span>
+              <span class="sticker-dot sticker-sky"></span>
+              <span class="sticker-dot sticker-teal"></span>
             </div>
-            <div class="stat-tile">
-              <div class="stat-label">세액공제 대상금액</div>
-              <div class="stat-value" id="credit-eligible">-</div>
-            </div>
-            <div class="stat-tile stat-highlight">
-              <div class="stat-label">예상 세액공제(절세)액</div>
-              <div class="stat-value" id="credit-amount">-</div>
-            </div>
+            <p>왼쪽에 정보를 입력하고 계산하면<br>세액공제 결과가 여기에 표시됩니다.</p>
           </div>
-          <p class="note" id="credit-overlimit" hidden></p>
-          <div class="basis-box" id="credit-basis"></div>
+          <div class="result-content" hidden>
+            <h2>계산 결과</h2>
+            <div class="stat-row">
+              <div class="stat-tile">
+                <div class="stat-label">적용 공제율</div>
+                <div class="stat-value" id="credit-rate">-</div>
+              </div>
+              <div class="stat-tile">
+                <div class="stat-label">세액공제 대상금액</div>
+                <div class="stat-value" id="credit-eligible">-</div>
+              </div>
+              <div class="stat-tile stat-highlight">
+                <div class="stat-label">예상 세액공제(절세)액</div>
+                <div class="stat-value" id="credit-amount">-</div>
+              </div>
+            </div>
+            <p class="badge-pill" id="credit-limit-badge"></p>
+            <p class="note" id="credit-overlimit" hidden></p>
+            <div class="basis-box" id="credit-basis"></div>
+          </div>
         </div>
       </div>
     </section>
@@ -110,23 +121,34 @@
           <p class="field-error" id="error-withdraw" hidden></p>
         </form>
 
-        <div class="result-card" id="result-withdraw" hidden>
-          <h2>계산 결과</h2>
-          <div class="stat-row">
-            <div class="stat-tile">
-              <div class="stat-label">총 인출금액</div>
-              <div class="stat-value" id="withdraw-total">-</div>
+        <div class="result-card" id="result-withdraw">
+          <div class="empty-state">
+            <div class="sticker-cluster">
+              <span class="sticker-dot sticker-orange"></span>
+              <span class="sticker-dot sticker-pink"></span>
+              <span class="sticker-dot sticker-purple"></span>
             </div>
-            <div class="stat-tile">
-              <div class="stat-label" id="withdraw-tax-label">적용 세금</div>
-              <div class="stat-value" id="withdraw-tax">-</div>
-            </div>
-            <div class="stat-tile stat-highlight">
-              <div class="stat-label">실수령액</div>
-              <div class="stat-value" id="withdraw-net">-</div>
-            </div>
+            <p>왼쪽에 인출 정보를 입력하고 계산하면<br>예상 세금과 실수령액이 여기에 표시됩니다.</p>
           </div>
-          <div class="basis-box" id="withdraw-basis"></div>
+          <div class="result-content" hidden>
+            <h2>계산 결과</h2>
+            <p class="badge-pill" id="withdraw-reason-badge"></p>
+            <div class="stat-row">
+              <div class="stat-tile">
+                <div class="stat-label">총 인출금액</div>
+                <div class="stat-value" id="withdraw-total">-</div>
+              </div>
+              <div class="stat-tile">
+                <div class="stat-label" id="withdraw-tax-label">적용 세금</div>
+                <div class="stat-value" id="withdraw-tax">-</div>
+              </div>
+              <div class="stat-tile stat-highlight">
+                <div class="stat-label">실수령액</div>
+                <div class="stat-value" id="withdraw-net">-</div>
+              </div>
+            </div>
+            <div class="basis-box" id="withdraw-basis"></div>
+          </div>
         </div>
       </div>
     </section>
@@ -162,44 +184,55 @@
           <p class="field-error" id="error-pension" hidden></p>
         </form>
 
-        <div class="result-card" id="result-pension" hidden>
-          <h2>계산 결과</h2>
-          <div class="stat-row">
-            <div class="stat-tile">
-              <div class="stat-label">총 세전 수령액</div>
-              <div class="stat-value" id="pension-gross">-</div>
+        <div class="result-card" id="result-pension">
+          <div class="empty-state">
+            <div class="sticker-cluster">
+              <span class="sticker-dot sticker-teal"></span>
+              <span class="sticker-dot sticker-green"></span>
+              <span class="sticker-dot sticker-sky"></span>
             </div>
-            <div class="stat-tile">
-              <div class="stat-label">총 예상 세금</div>
-              <div class="stat-value" id="pension-tax">-</div>
-            </div>
-            <div class="stat-tile stat-highlight">
-              <div class="stat-label">총 세후 수령액</div>
-              <div class="stat-value" id="pension-net">-</div>
-            </div>
-            <div class="stat-tile">
-              <div class="stat-label">실효세율</div>
-              <div class="stat-value" id="pension-effrate">-</div>
-            </div>
+            <p>왼쪽에 연금수령 정보를 입력하고 시뮬레이션하면<br>연차별 실수령액과 그래프가 여기에 표시됩니다.</p>
           </div>
+          <div class="result-content" hidden>
+            <h2>계산 결과</h2>
+            <p class="badge-pill sticker-purple-badge" id="pension-lifetime-badge" hidden>종신형 연금</p>
+            <div class="stat-row">
+              <div class="stat-tile">
+                <div class="stat-label">총 세전 수령액</div>
+                <div class="stat-value" id="pension-gross">-</div>
+              </div>
+              <div class="stat-tile">
+                <div class="stat-label">총 예상 세금</div>
+                <div class="stat-value" id="pension-tax">-</div>
+              </div>
+              <div class="stat-tile stat-highlight">
+                <div class="stat-label">총 세후 수령액</div>
+                <div class="stat-value" id="pension-net">-</div>
+              </div>
+              <div class="stat-tile">
+                <div class="stat-label">실효세율</div>
+                <div class="stat-value" id="pension-effrate">-</div>
+              </div>
+            </div>
 
-          <h3 class="chart-title">연차별 세후 실수령액</h3>
-          <div class="chart-wrap" id="chart-yearly"></div>
+            <h3 class="chart-title">연차별 세후 실수령액</h3>
+            <div class="chart-wrap" id="chart-yearly"></div>
 
-          <h3 class="chart-title">수령기간별 총 세후수령액 비교</h3>
-          <div class="chart-wrap" id="chart-periods"></div>
+            <h3 class="chart-title">수령기간별 총 세후수령액 비교</h3>
+            <div class="chart-wrap" id="chart-periods"></div>
 
-          <h3 class="table-title">연차별 상세 내역</h3>
-          <div class="table-wrap">
-            <table id="pension-table">
-              <thead>
-                <tr><th>연차</th><th>나이</th><th>적용세율</th><th>세전수령액</th><th>세금</th><th>세후수령액</th></tr>
-              </thead>
-              <tbody></tbody>
-            </table>
+            <h3 class="table-title">연차별 상세 내역</h3>
+            <div class="table-wrap">
+              <table id="pension-table">
+                <thead>
+                  <tr><th>연차</th><th>나이</th><th>적용세율</th><th>세전수령액</th><th>세금</th><th>세후수령액</th></tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+
+            <div class="basis-box" id="pension-basis"></div>
           </div>
-
-          <div class="basis-box" id="pension-basis"></div>
         </div>
       </div>
     </section>
