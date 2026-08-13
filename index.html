@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>연금 세제혜택·수령액 시뮬레이터</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body class="viz-root">
+  <header class="app-header">
+    <h1>연금 세제혜택·수령액 시뮬레이터</h1>
+    <p class="disclaimer">
+      본 계산기는 상담 참고용이며 법적 효력이 없습니다. 실제 세액은 국세청 신고 자료 및 세무 전문가 확인을 거쳐 확정하세요.
+    </p>
+  </header>
+
+  <nav class="tabs" role="tablist">
+    <button class="tab-btn is-active" data-tab="credit" role="tab" aria-selected="true">세액공제 한도</button>
+    <button class="tab-btn" data-tab="withdraw" role="tab" aria-selected="false">중도인출 세금</button>
+    <button class="tab-btn" data-tab="pension" role="tab" aria-selected="false">연금수령 시뮬레이션</button>
+  </nav>
+
+  <main>
+    <!-- ============ 세액공제 한도 계산 ============ -->
+    <section id="tab-credit" class="tab-panel is-active" role="tabpanel">
+      <div class="panel-grid">
+        <form id="form-credit" class="input-card">
+          <h2>고객 정보 입력</h2>
+
+          <div class="field">
+            <label>소득 구분</label>
+            <div class="radio-row">
+              <label class="radio"><input type="radio" name="incomeType" value="salary" checked> 근로소득(총급여)</label>
+              <label class="radio"><input type="radio" name="incomeType" value="business"> 종합소득(사업소득 등)</label>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="incomeAmount">연간 총급여 / 종합소득금액 (원)</label>
+            <input type="text" inputmode="numeric" id="incomeAmount" data-money placeholder="예: 50,000,000" required>
+          </div>
+
+          <div class="field">
+            <label for="pensionSavings">연금저축 연간 납입액 (원)</label>
+            <input type="text" inputmode="numeric" id="pensionSavings" data-money placeholder="예: 4,000,000" required>
+          </div>
+
+          <div class="field">
+            <label for="irpAmount">IRP 연간 납입액 (원)</label>
+            <input type="text" inputmode="numeric" id="irpAmount" data-money placeholder="예: 3,000,000" required>
+          </div>
+
+          <button type="submit" class="btn-primary">세액공제 계산하기</button>
+          <p class="field-error" id="error-credit" hidden></p>
+        </form>
+
+        <div class="result-card" id="result-credit" hidden>
+          <h2>계산 결과</h2>
+          <div class="stat-row">
+            <div class="stat-tile">
+              <div class="stat-label">적용 공제율</div>
+              <div class="stat-value" id="credit-rate">-</div>
+            </div>
+            <div class="stat-tile">
+              <div class="stat-label">세액공제 대상금액</div>
+              <div class="stat-value" id="credit-eligible">-</div>
+            </div>
+            <div class="stat-tile stat-highlight">
+              <div class="stat-label">예상 세액공제(절세)액</div>
+              <div class="stat-value" id="credit-amount">-</div>
+            </div>
+          </div>
+          <p class="note" id="credit-overlimit" hidden></p>
+          <div class="basis-box" id="credit-basis"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 중도인출 세금 계산 ============ -->
+    <section id="tab-withdraw" class="tab-panel" role="tabpanel" hidden>
+      <div class="panel-grid">
+        <form id="form-withdraw" class="input-card">
+          <h2>인출 정보 입력</h2>
+
+          <div class="field">
+            <label>인출 사유</label>
+            <div class="radio-row">
+              <label class="radio"><input type="radio" name="reason" value="general" checked> 일반 사유</label>
+              <label class="radio"><input type="radio" name="reason" value="unavoidable"> 부득이한 사유</label>
+            </div>
+          </div>
+
+          <div class="field" id="field-age-withdraw">
+            <label for="ageWithdraw">인출 시점 만 나이</label>
+            <input type="number" id="ageWithdraw" min="0" max="120" placeholder="예: 45" required>
+            <p class="hint">부득이한 사유는 연금소득세율(나이별 3.3~5.5%)이 적용됩니다.</p>
+          </div>
+
+          <div class="field">
+            <label for="taxableAmount">과세대상금액 — 세액공제받은 납입액 + 운용수익 (원)</label>
+            <input type="text" inputmode="numeric" id="taxableAmount" data-money placeholder="예: 8,000,000" required>
+          </div>
+
+          <div class="field">
+            <label for="taxFreeAmount">비과세금액 — 세액공제 받지 않은 자기부담금 (원)</label>
+            <input type="text" inputmode="numeric" id="taxFreeAmount" data-money placeholder="예: 2,000,000" required>
+          </div>
+
+          <button type="submit" class="btn-primary">중도인출 세금 계산하기</button>
+          <p class="field-error" id="error-withdraw" hidden></p>
+        </form>
+
+        <div class="result-card" id="result-withdraw" hidden>
+          <h2>계산 결과</h2>
+          <div class="stat-row">
+            <div class="stat-tile">
+              <div class="stat-label">총 인출금액</div>
+              <div class="stat-value" id="withdraw-total">-</div>
+            </div>
+            <div class="stat-tile">
+              <div class="stat-label" id="withdraw-tax-label">적용 세금</div>
+              <div class="stat-value" id="withdraw-tax">-</div>
+            </div>
+            <div class="stat-tile stat-highlight">
+              <div class="stat-label">실수령액</div>
+              <div class="stat-value" id="withdraw-net">-</div>
+            </div>
+          </div>
+          <div class="basis-box" id="withdraw-basis"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 연금수령 시뮬레이션 ============ -->
+    <section id="tab-pension" class="tab-panel" role="tabpanel" hidden>
+      <div class="panel-grid">
+        <form id="form-pension" class="input-card">
+          <h2>연금수령 정보 입력</h2>
+
+          <div class="field">
+            <label for="startAge">연금수령 개시 나이</label>
+            <input type="number" id="startAge" placeholder="예: 60" required>
+          </div>
+
+          <div class="field">
+            <label for="years">수령 기간 (년)</label>
+            <input type="number" id="years" max="50" placeholder="예: 20" required>
+          </div>
+
+          <div class="field">
+            <label for="totalAsset">연금계좌 과세대상 평가금액 (원)</label>
+            <input type="text" inputmode="numeric" id="totalAsset" data-money placeholder="예: 200,000,000" required>
+            <p class="hint">세액공제받은 납입원금 + 운용수익 합계. 수령 기간 동안 균등 수령을 가정합니다.</p>
+          </div>
+
+          <div class="field">
+            <label class="checkbox"><input type="checkbox" id="isLifetime"> 종신형 연금으로 수령</label>
+            <p class="hint">종신형은 연금수령한도를 초과해도 저율 연금소득세가 유지되는 혜택이 있습니다(한도 계산은 본 시뮬레이터 범위 밖).</p>
+          </div>
+
+          <button type="submit" class="btn-primary">연금수령 시뮬레이션하기</button>
+          <p class="field-error" id="error-pension" hidden></p>
+        </form>
+
+        <div class="result-card" id="result-pension" hidden>
+          <h2>계산 결과</h2>
+          <div class="stat-row">
+            <div class="stat-tile">
+              <div class="stat-label">총 세전 수령액</div>
+              <div class="stat-value" id="pension-gross">-</div>
+            </div>
+            <div class="stat-tile">
+              <div class="stat-label">총 예상 세금</div>
+              <div class="stat-value" id="pension-tax">-</div>
+            </div>
+            <div class="stat-tile stat-highlight">
+              <div class="stat-label">총 세후 수령액</div>
+              <div class="stat-value" id="pension-net">-</div>
+            </div>
+            <div class="stat-tile">
+              <div class="stat-label">실효세율</div>
+              <div class="stat-value" id="pension-effrate">-</div>
+            </div>
+          </div>
+
+          <h3 class="chart-title">연차별 세후 실수령액</h3>
+          <div class="chart-wrap" id="chart-yearly"></div>
+
+          <h3 class="chart-title">수령기간별 총 세후수령액 비교</h3>
+          <div class="chart-wrap" id="chart-periods"></div>
+
+          <h3 class="table-title">연차별 상세 내역</h3>
+          <div class="table-wrap">
+            <table id="pension-table">
+              <thead>
+                <tr><th>연차</th><th>나이</th><th>적용세율</th><th>세전수령액</th><th>세금</th><th>세후수령액</th></tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+
+          <div class="basis-box" id="pension-basis"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div class="tooltip" id="tooltip" hidden role="tooltip"></div>
+
+  <footer class="app-footer">
+    <p>참고 근거: 소득세법 제20조의3·제59조의3, 시행령 제40조의2 (2026년 기준) · 담당자 확인용 내부 도구 v0.1</p>
+  </footer>
+
+  <script src="taxRules.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
