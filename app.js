@@ -389,6 +389,15 @@ document.getElementById('form-pension').addEventListener('submit', (e) => {
 
   const sim = simulatePensionPayout({ startAge, years, totalAsset });
   const effRate = sim.totalGross > 0 ? sim.totalTax / sim.totalGross : 0;
+  const grossAnnual = sim.totalGross / years;
+
+  const comprehensiveNoteEl = document.getElementById('pension-comprehensive-note');
+  if (grossAnnual > TAX_RULES.PRIVATE_PENSION_COMPREHENSIVE_THRESHOLD) {
+    comprehensiveNoteEl.hidden = false;
+    comprehensiveNoteEl.textContent = `연간 세전 수령액(${formatWon(grossAnnual)})이 사적연금 종합과세 기준(${formatWon(TAX_RULES.PRIVATE_PENSION_COMPREHENSIVE_THRESHOLD)})을 초과합니다. 다른 소득과 합산해 종합소득세로 과세될 수 있어 실제 세액이 이 계산과 달라질 수 있습니다.`;
+  } else {
+    comprehensiveNoteEl.hidden = true;
+  }
 
   document.getElementById('pension-lifetime-badge').hidden = !isLifetime;
   animateValue(document.getElementById('pension-gross'), sim.totalGross, formatWon);
@@ -430,8 +439,9 @@ document.getElementById('form-pension').addEventListener('submit', (e) => {
   document.getElementById('pension-basis').innerHTML = `
     <b>계산 근거</b><br>
     · 연금소득세율(나이 기준): 55~69세 5.5% / 70~79세 4.4% / 80세 이상 3.3%<br>
-    · 연간 세전 수령액 = 평가금액 ÷ 수령기간 = ${formatWon(totalAsset)} ÷ ${years}년 = ${formatWon(sim.totalGross / years)} (균등수령 가정)<br>
-    · 실효세율 = 총세금 ÷ 총세전수령액 = ${formatPercent(effRate)}${isLifetime ? '<br>· 종신형 연금은 연금수령한도 초과분도 저율 연금소득세가 유지되나, 본 시뮬레이터는 한도 초과 여부는 계산하지 않습니다.' : ''}
+    · 연간 세전 수령액 = 평가금액 ÷ 수령기간 = ${formatWon(totalAsset)} ÷ ${years}년 = ${formatWon(grossAnnual)} (균등수령 가정)<br>
+    · 실효세율 = 총세금 ÷ 총세전수령액 = ${formatPercent(effRate)}<br>
+    · 사적연금 종합과세 기준: 연간 수령액이 ${formatWon(TAX_RULES.PRIVATE_PENSION_COMPREHENSIVE_THRESHOLD)}을 초과하면 다른 소득과 합산해 종합소득세로 과세될 수 있습니다.${isLifetime ? '<br>· 종신형 연금은 연금수령한도 초과분도 저율 연금소득세가 유지되나, 본 시뮬레이터는 한도 초과 여부는 계산하지 않습니다.' : ''}
   `;
 
   revealResult('result-pension');

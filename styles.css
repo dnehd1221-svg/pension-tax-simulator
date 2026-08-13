@@ -200,6 +200,7 @@ main { padding: 24px 32px 48px; }
   color: var(--text-secondary);
 }
 .badge-pill:empty { display: none; }
+.badge-pill[hidden] { display: none; }
 .badge-pill.badge-good {
   background: color-mix(in srgb, var(--sticker-green) 16%, var(--canvas));
   color: color-mix(in srgb, var(--sticker-green) 70%, var(--text-primary));

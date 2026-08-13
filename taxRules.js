@@ -32,6 +32,9 @@ const TAX_RULES = {
     general: { label: '일반 사유', taxType: 'other' },
     unavoidable: { label: '부득이한 사유(요양·개인회생·파산·해외이주·사망·천재지변 등)', taxType: 'pension' },
   },
+
+  // 사적연금소득(연금저축·IRP 등) 연간 합계가 이 금액을 초과하면 종합소득과세 대상으로 전환될 수 있음
+  PRIVATE_PENSION_COMPREHENSIVE_THRESHOLD: 15_000_000,
 };
 
 /** 총급여/종합소득 구간에 따른 세액공제율 반환 */
