@@ -63,6 +63,30 @@ function calcTaxCredit({ incomeType, incomeAmount, pensionSavings, irp }) {
   return { rate, pensionSavingsCapped, eligibleAmount, credit, totalContribution, overLimitAmount };
 }
 
+/**
+ * 총 납입액·세액공제 신청 누적액·현재 평가금액으로부터 과세대상/비과세 구성을 역산한다.
+ * 연금계좌 인출 시 세액공제받은 원금+운용수익은 과세대상, 공제받지 않은 원금은 비과세로 구분된다.
+ * 평가금액이 납입액보다 낮은 경우(손실)에는 손실 비율만큼 두 금액을 비례 축소해
+ * (비과세+과세대상 = 현재 평가금액)이 항상 성립하도록 한다.
+ */
+function deriveWithdrawalComposition({ totalContribution, creditClaimedAmount, currentValuation }) {
+  const wasCreditCapped = creditClaimedAmount > totalContribution;
+  const creditClaimedCapped = Math.min(Math.max(creditClaimedAmount, 0), totalContribution);
+  const gains = Math.max(currentValuation - totalContribution, 0);
+  const hasLoss = currentValuation < totalContribution;
+
+  let taxFreeAmount = totalContribution - creditClaimedCapped;
+  let taxableAmount = creditClaimedCapped + gains;
+
+  if (hasLoss && totalContribution > 0) {
+    const scale = currentValuation / totalContribution;
+    taxFreeAmount *= scale;
+    taxableAmount = creditClaimedCapped * scale;
+  }
+
+  return { taxFreeAmount, taxableAmount, gains, creditClaimedCapped, wasCreditCapped, hasLoss };
+}
+
 /** 중도인출 세금 계산 */
 function calcWithdrawalTax({ reason, age, taxableAmount, taxFreeAmount }) {
   const reasonInfo = TAX_RULES.WITHDRAWAL_REASONS[reason];

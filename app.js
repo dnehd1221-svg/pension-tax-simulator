@@ -303,19 +303,23 @@ document.getElementById('form-withdraw').addEventListener('submit', (e) => {
 
   const reason = getRadioValue(form, 'reason');
   const age = Number(document.getElementById('ageWithdraw').value);
-  const taxableAmount = parseMoneyInput('taxableAmount');
-  const taxFreeAmount = parseMoneyInput('taxFreeAmount');
+  const totalContribution = parseMoneyInput('totalContribution');
+  const creditClaimedAmount = parseMoneyInput('creditClaimedAmount');
+  const currentValuation = parseMoneyInput('currentValuation');
 
   if (reason === 'unavoidable' && (Number.isNaN(age) || age <= 0)) {
     showError('error-withdraw', '부득이한 사유는 인출 시점의 나이를 입력해야 세율을 계산할 수 있습니다.');
     return;
   }
-  if ([taxableAmount, taxFreeAmount].some(Number.isNaN)) {
-    showError('error-withdraw', '과세대상금액과 비과세금액에 숫자를 입력해 주세요.');
+  if ([totalContribution, creditClaimedAmount, currentValuation].some(Number.isNaN)) {
+    showError('error-withdraw', '총 납입액, 세액공제 신청 누적액, 현재 평가금액에 숫자를 입력해 주세요.');
     return;
   }
 
-  const result = calcWithdrawalTax({ reason, age, taxableAmount, taxFreeAmount });
+  const composition = deriveWithdrawalComposition({ totalContribution, creditClaimedAmount, currentValuation });
+  const result = calcWithdrawalTax({
+    reason, age, taxableAmount: composition.taxableAmount, taxFreeAmount: composition.taxFreeAmount,
+  });
 
   const reasonBadge = document.getElementById('withdraw-reason-badge');
   if (reason === 'unavoidable') {
@@ -331,12 +335,28 @@ document.getElementById('form-withdraw').addEventListener('submit', (e) => {
   animateValue(document.getElementById('withdraw-tax'), result.tax, formatWon);
   animateValue(document.getElementById('withdraw-net'), result.netAmount, formatWon);
 
+  document.getElementById('withdraw-composition').innerHTML = `
+    · 비과세 (세액공제 안 받은 원금) = 총 납입액 − 세액공제 신청액 = ${formatWon(totalContribution)} − ${formatWon(composition.creditClaimedCapped)} = <b>${formatWon(composition.taxFreeAmount)}</b><br>
+    · 과세대상 (세액공제 받은 원금 + 운용수익) = ${formatWon(composition.creditClaimedCapped)} + ${formatWon(composition.gains)} = <b>${formatWon(composition.taxableAmount)}</b>
+  `;
+
+  const compositionNoteEl = document.getElementById('withdraw-composition-note');
+  if (composition.wasCreditCapped) {
+    compositionNoteEl.hidden = false;
+    compositionNoteEl.textContent = '세액공제 신청 누적액이 총 납입액보다 커서 총 납입액만큼만 인정해 계산했습니다. 입력값을 다시 확인해 주세요.';
+  } else if (composition.hasLoss) {
+    compositionNoteEl.hidden = false;
+    compositionNoteEl.textContent = '현재 평가금액이 총 납입액보다 낮아(손실) 손실 비율만큼 비과세·과세 금액을 비례 축소해 계산했습니다.';
+  } else {
+    compositionNoteEl.hidden = true;
+  }
+
   document.getElementById('withdraw-basis').innerHTML = `
     <b>계산 근거</b><br>
     · 인출 사유: ${TAX_RULES.WITHDRAWAL_REASONS[reason].label}<br>
     · 적용 세목/세율: ${result.taxLabel} ${formatPercent(result.rate)}${reason === 'unavoidable' ? ` (나이 ${age}세 기준 연금소득세율)` : ' (기타소득세, 지방소득세 포함)'}<br>
-    · 비과세금액(세액공제 미청구 자기부담금)은 과세 대상에서 제외됩니다.<br>
-    · 세금 = 과세대상금액 × 세율 = ${formatWon(taxableAmount)} × ${formatPercent(result.rate)} = ${formatWon(result.tax)}<br>
+    · 비과세금액(세액공제 미청구 원금)은 과세 대상에서 제외됩니다.<br>
+    · 세금 = 과세대상금액 × 세율 = ${formatWon(composition.taxableAmount)} × ${formatPercent(result.rate)} = ${formatWon(result.tax)}<br>
     · 실수령액 = 총 인출금액 − 세금 = ${formatWon(result.totalWithdrawal)} − ${formatWon(result.tax)} = ${formatWon(result.netAmount)}
   `;
 
